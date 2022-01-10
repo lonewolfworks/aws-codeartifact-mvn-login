@@ -1,7 +1,9 @@
 name: aws-codeartifact-mvn-login
 description: Login and render settings.xml
-
-author: Mike DOdge
+branding:
+  icon: code
+  color: blue
+author: Mike Dodge
 
 inputs:
   repo-name:
