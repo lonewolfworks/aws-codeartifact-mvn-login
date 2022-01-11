@@ -25,6 +25,8 @@ async function run() {
     throw Error(`Auth Failed: ${response.$metadata.httpStatusCode} (${response.$metadata.requestId})`);
   }
 
+  maven(domain, account, region, repo, authToken, path);
+
   core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
   core.setSecret(authToken);
 }
