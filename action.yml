@@ -23,50 +23,12 @@ inputs:
     description: "aws region"
     required: false
     default: "us-east-1"
+  duration:
+    default: '900'
+    description: 'Duration in seconds'
+    required: false
 runs:
-  using: composite
-  steps:
-  - shell: bash
-    env:
-      REPO_NAME: ${{ inputs.repo-name }}
-      REPO_DOMAIN: ${{ inputs.repo-domain }}
-      ACCOUNT_NUMBER: ${{ inputs.account-number }}
-      SETTINGS_PATH: ${{ inputs.settings-xml-path }}
-      REGION: ${{ inputs.region }}
-    run: |
-      # Bash
-      CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain $REPO_DOMAIN --domain-owner $ACCOUNT_NUMBER --query authorizationToken --output text)
-     
-      echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > ${SETTINGS_PATH}/settings.xml
-      echo "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd\">" >> ${SETTINGS_PATH}/settings.xml
-      echo "   <servers>" >> ${SETTINGS_PATH}/settings.xml
-      echo "      <server>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <id>${REPO_DOMAIN}-${REPO_NAME}</id>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <username>aws</username>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <password>${CODEARTIFACT_AUTH_TOKEN}</password>" >> ${SETTINGS_PATH}/settings.xml
-      echo "      </server>" >> ${SETTINGS_PATH}/settings.xml
-      echo "   </servers>" >> ${SETTINGS_PATH}/settings.xml
-      echo "   <profiles>" >> ${SETTINGS_PATH}/settings.xml
-      echo "      <profile>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <id>${REPO_DOMAIN}-${REPO_NAME}</id>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <activation>" >> ${SETTINGS_PATH}/settings.xml
-      echo "            <activeByDefault>true</activeByDefault>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         </activation>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <repositories>" >> ${SETTINGS_PATH}/settings.xml
-      echo "            <repository>" >> ${SETTINGS_PATH}/settings.xml
-      echo "               <id>${REPO_DOMAIN}-${REPO_NAME}</id>" >> ${SETTINGS_PATH}/settings.xml
-      echo "               <url>https://${REPO_DOMAIN}-${ACCOUNT_NUMBER}.d.codeartifact.${REGION}.amazonaws.com/maven/${REPO_NAME}/</url>" >> ${SETTINGS_PATH}/settings.xml
-      echo "            </repository>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         </repositories>" >> ${SETTINGS_PATH}/settings.xml
-      echo "      </profile>" >> ${SETTINGS_PATH}/settings.xml
-      echo "   </profiles>" >> ${SETTINGS_PATH}/settings.xml
-      echo "   <mirrors>" >> ${SETTINGS_PATH}/settings.xml
-      echo "      <mirror>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <id>${REPO_DOMAIN}-${REPO_NAME}</id>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <name>${REPO_DOMAIN}-${REPO_NAME}</name>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <url>https://${REPO_DOMAIN}-${ACCOUNT_NUMBER}.d.codeartifact.${REGION}.amazonaws.com/maven/${REPO_NAME}/</url>" >> ${SETTINGS_PATH}/settings.xml
-      echo "         <mirrorOf>*</mirrorOf>" >> ${SETTINGS_PATH}/settings.xml
-      echo "      </mirror>" >> ${SETTINGS_PATH}/settings.xml
-      echo "   </mirrors>" >> ${SETTINGS_PATH}/settings.xml
-      echo "</settings>" >> ${SETTINGS_PATH}/settings.xml
+  using: 'node12'
+  main: 'dist/action/index.js'
+  post: 'dist/cleanup/index.js'
       
