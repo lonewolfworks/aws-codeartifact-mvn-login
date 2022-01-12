@@ -33,8 +33,17 @@ async function run() {
 
 async function maven(domain, account, region, repo, authToken, path) {
   
-  await io.rmRF(path+`/settings.xml`);
-  
+  //await io.rmRF(path+`/settings.xml`);
+  fs.exists(path+`/settings.xml`, function(exists) {
+
+  if(exists) {
+      console.log('File exists. Deleting now ...');
+      fs.unlinkSync(path+`/settings.xml`);
+  } else {
+      console.log('File not found, so not deleting.');
+  }
+
+  });
   const file = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd\">
    <servers>
