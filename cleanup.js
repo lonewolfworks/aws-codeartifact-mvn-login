@@ -4,7 +4,7 @@ const io = require('@actions/io');
 
 async function cleanup() {
   const path = core.getInput('settings-xml-path', { required: true });
-  await io.rmRF(path+'/settings.xml');
+  await io.rmRF(path);
 }
 
 module.exports = cleanup;
