@@ -33,12 +33,12 @@ async function run() {
 
 async function maven(domain, account, region, repo, authToken, path) {
   
-  //await io.rmRF(path+`/settings.xml`);
-  fs.exists(path+`/settings.xml`, function(exists) {
+  await io.rmRF(path);
+  fs.exists(path, function(exists) {
 
   if(exists) {
       console.log('File exists. Deleting now ...');
-      fs.unlinkSync(path+`/settings.xml`);
+      fs.unlinkSync(path);
   } else {
       console.log('File not found, so not deleting.');
   }
@@ -78,7 +78,7 @@ async function maven(domain, account, region, repo, authToken, path) {
 </settings>     
 `;
 
-  fs.writeFile(path+`/settings.xml`, file, { flag: 'wx' }, (callback) => {
+  fs.writeFile(path, file, { flag: 'wx' }, (callback) => {
     if (callback) core.setFailed(callback);
   });
 }
