@@ -18,7 +18,7 @@ inputs:
   settings-xml-path:
     description: "folder for m2 settings"
     required: false
-    default: "/home/runner/.m2"
+    default: "/home/runner/.m2/settings.xml"
   region:
     description: "aws region"
     required: false
