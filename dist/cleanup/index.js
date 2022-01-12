@@ -10,7 +10,7 @@ const io = __nccwpck_require__(913);
 
 async function cleanup() {
   const path = core.getInput('settings-xml-path', { required: true });
-  await io.rmRF(path+'/settings.xml');
+  await io.rmRF(path);
 }
 
 module.exports = cleanup;
