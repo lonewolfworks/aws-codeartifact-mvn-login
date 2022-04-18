@@ -19,6 +19,8 @@ AWS CodeArtifact Region
 ### `duration`
 Token duration in seconds, default 900
 
+### `mirror`
+Allows to use codeartifact as mirror, default false
 
 
 
@@ -42,5 +44,6 @@ Test:
           repo-name: release
           repo-domain: lonewolfworks
           account-number: 1234567
+          mirror: true
           region: us-east-1
 ```
