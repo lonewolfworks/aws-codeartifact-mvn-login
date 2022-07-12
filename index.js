@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const io = require('@actions/io');
 const fs = require('fs');
+var builder = require('xmlbuilder');
 const codeArtifact = require('@aws-sdk/client-codeartifact');
 
 async function run() {
