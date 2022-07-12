@@ -2,7 +2,7 @@
 Required: `aws-actions/configure-aws-credentials`
 
 ### `repo-name`
-Repository Name... :D
+Comma-delimited Repository Names... :D
 
 ### `repo-domain`
 Domain of the CA repo
@@ -19,9 +19,8 @@ AWS CodeArtifact Region
 ### `duration`
 Token duration in seconds, default 900
 
-
-
-
+## Changes in thie fork
+There is no mirror option currently. This fork allows us to configure multiple repos on a single domain.
 
 ## Example
 
