@@ -49,7 +49,8 @@ async function maven(domain, account, region, repo, authToken, path) {
   var settingsXml = builder.create('settings');
   var serversXml = settingsXml.ele('servers');
   
-  for(repository in repositories) {
+  for(var i=0; i < repositories.length; i++) {
+      const repository = repositories[i];
       var eachServer = serversXml.ele('server');
       eachServer.ele('id', `${domain}-${repository}`);
       eachServer.ele('username', 'aws')
@@ -62,7 +63,8 @@ async function maven(domain, account, region, repo, authToken, path) {
   profileXml.ele('activation').ele('activeByDefault', true);
 
   var repositoriesXml = profileXml.ele('repositories')
-  for(repository in repositories) {
+  for(var i=0; i < repositories.length; i++) {
+      const repository = repositories[i];
       var eachRepository = repositoriesXml.ele('repository');
       eachRepository.ele('id', `${domain}-${repository}`);
       eachRepository.ele('url', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repository}/`);
