@@ -2702,7 +2702,7 @@ async function maven(domain, account, region, repo, authToken, path) {
   });
   var repositories = repo.split(',');
   var settingsXml = builder.create('settings');
-  var serversXml = settingsXml.ele('xmlbuilder').ele('servers');
+  var serversXml = settingsXml.ele('servers');
   
   for(repository in repositories) {
       var eachServer = serversXml.ele('server');
