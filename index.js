@@ -44,41 +44,31 @@ async function maven(domain, account, region, repo, authToken, path) {
   }
 
   });
-  const file = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd\">
-   <servers>
-      <server>
-         <id>${domain}-${repo}</id>
-         <username>aws</username>
-         <password>${authToken}</password>
-      </server>
-   </servers>
-   <profiles>
-        <profile>
-         <id>${domain}-${repo}</id>
-         <activation>
-            <activeByDefault>true</activeByDefault>
-         </activation>
-         <repositories>
-            <repository>
-               <id>${domain}-${repo}</id>
-               <url>https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repo}/</url>
-            </repository>
-                </repositories>
-      </profile>
-   </profiles>
-   <mirrors>
-      <mirror>
-         <id>${domain}-${repo}</id>
-         <name>${domain}-${repo}</name>
-         <url>https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repo}/</url>
-         <mirrorOf>*</mirrorOf>
-      </mirror>
-   </mirrors>
-</settings>     
-`;
+  var repositories = repo.split(',');
+  var settingsXml = builder.create('settings');
+  var serversXml = settingsXml.ele('xmlbuilder').ele('servers');
+  
+  for(repository in repositories) {
+      var eachServer = serversXml.ele('server');
+      eachServer.ele('id', `${domain}-${repository}`);
+      eachServer.ele('username', 'aws')
+      eachServer.ele('password', authToken);
+  }
+  // Instead of defining an ActiveProfile, just define a single profile with multiple repositories that is activeByDefault
+  // Central is built-in so we shouldnt have to add apache repos
+  var profileXml = settingsXml.ele('profiles').ele('profile');
+  profileXml.ele('id', 'all-repos'); 
+  profileXml.ele('activation').ele('activeByDefault', true);
 
-  fs.writeFile(path, file, { flag: 'wx' }, (callback) => {
+  var repositoriesXml = profileXml.ele('repositories')
+  for(repository in respositories) {
+      var eachRepository = repositoriesXml.ele('repository');
+      eachRepository.ele('id', `${domain}-${repository}`);
+      eachRepository.ele('url', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repository}/`);
+  }
+  settingsXml.end({ pretty: true});
+
+  fs.writeFile(path, settingsXml, { flag: 'wx' }, (callback) => {
     if (callback) core.setFailed(callback);
   });
 }
