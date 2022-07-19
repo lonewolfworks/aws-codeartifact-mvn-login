@@ -65,7 +65,8 @@ jobs:
         JAVA_HOME: /usr/lib/jvm/java-1.8-openjdk/
       with:
         git-release-bot-name: release-bot
-        maven-options: -s /github/workspace/settings.xml -Dresume=false
+        maven-options: -s /github/workspace/settings.xml --no-transfer-progress
+        maven-args: -Dresume=false -Dmaven.test.skipTests -Dmaven.test.skip
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         version-minor: true
 ```
