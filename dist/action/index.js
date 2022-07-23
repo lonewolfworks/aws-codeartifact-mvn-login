@@ -2665,8 +2665,8 @@ async function run() {
   const domain = core.getInput('repo-domain', { required: true });
   const account = core.getInput('account-number', { required: true });
   const duration = core.getInput('duration', { required: false });
-  const repo = core.getInput('repo-name', { required: true });
-  const path = core.getInput('settings-xml-path', { required: true });
+  const repo = core.getInput('repo-name', { required: false });
+  const path = core.getInput('settings-xml-path', { required: false });
   
   const client = new codeArtifact.CodeartifactClient({ region: region });
   const authCommand = new codeArtifact.GetAuthorizationTokenCommand({
@@ -2680,10 +2680,13 @@ async function run() {
   if (response.authorizationToken === undefined) {
     throw Error(`Auth Failed: ${response.$metadata.httpStatusCode} (${response.$metadata.requestId})`);
   }
-
-  maven(domain, account, region, repo, authToken, path);
+  if(path !== undefined && path != null && path != '' &&
+    repo !== undefined && repo != null && repo != '') {
+  	maven(domain, account, region, repo, authToken, path);
+  }
   
-  core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
+  // core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
+  core.setOutput('token', authToken);
   core.setSecret(authToken);
 }
 

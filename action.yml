@@ -11,7 +11,7 @@ inputs:
     required: true
   repo-domain:
     description: "Repo domain"
-    required: true
+    required: false
   account-number:
     description: "AWS acct number"
     required: true
@@ -27,6 +27,9 @@ inputs:
     default: '900'
     description: 'Duration in seconds'
     required: false
+outputs:
+  token:
+    description: 'CodeArtifact Token'
 runs:
   using: 'node12'
   main: 'dist/action/index.js'
