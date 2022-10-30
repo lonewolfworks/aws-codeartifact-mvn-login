@@ -32,7 +32,7 @@ inputs:
     description: 'Use codeartifact as mirror'
     required: false
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/action/index.js'
   post: 'dist/cleanup/index.js'
       
