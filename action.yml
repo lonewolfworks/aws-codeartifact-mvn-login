@@ -27,6 +27,10 @@ inputs:
     default: '900'
     description: 'Duration in seconds'
     required: false
+  mirror:
+    default: 'false'
+    description: 'Use codeartifact as mirror'
+    required: false
 runs:
   using: 'node16'
   main: 'dist/action/index.js'

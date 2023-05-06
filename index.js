@@ -11,6 +11,7 @@ async function run() {
   const duration = core.getInput('duration', { required: false });
   const repo = core.getInput('repo-name', { required: true });
   const path = core.getInput('settings-xml-path', { required: true });
+  const mirror = core.getInput('mirror', { required: false });
   
   const client = new codeArtifact.CodeartifactClient({ region: region });
   const authCommand = new codeArtifact.GetAuthorizationTokenCommand({
@@ -25,13 +26,13 @@ async function run() {
     throw Error(`Auth Failed: ${response.$metadata.httpStatusCode} (${response.$metadata.requestId})`);
   }
 
-  maven(domain, account, region, repo, authToken, path);
+  maven(domain, account, region, repo, authToken, path, mirror);
   
   core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
   core.setSecret(authToken);
 }
 
-async function maven(domain, account, region, repo, authToken, path) {
+async function maven(domain, account, region, repo, authToken, path, mirror) {
   
   await io.rmRF(path);
   fs.exists(path, function(exists) {
@@ -44,7 +45,11 @@ async function maven(domain, account, region, repo, authToken, path) {
   }
 
   });
-  const file = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+
+  let file;
+
+  if (mirror.toLowerCase() == 'true') {
+   file = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd\">
    <servers>
       <server>
@@ -77,6 +82,33 @@ async function maven(domain, account, region, repo, authToken, path) {
    </mirrors>
 </settings>     
 `;
+  } else {
+   file = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd\">
+   <servers>
+      <server>
+         <id>${domain}-${repo}</id>
+         <username>aws</username>
+         <password>${authToken}</password>
+      </server>
+   </servers>
+   <profiles>
+        <profile>
+         <id>${domain}-${repo}</id>
+         <activation>
+            <activeByDefault>true</activeByDefault>
+         </activation>
+         <repositories>
+            <repository>
+               <id>${domain}-${repo}</id>
+               <url>https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repo}/</url>
+            </repository>
+                </repositories>
+      </profile>
+   </profiles>
+</settings>     
+`;     
+  }
 
   fs.writeFile(path, file, { flag: 'wx' }, (callback) => {
     if (callback) core.setFailed(callback);
