@@ -28,7 +28,7 @@ inputs:
     description: 'Duration in seconds'
     required: false
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/action/index.js'
   post: 'dist/cleanup/index.js'
       
