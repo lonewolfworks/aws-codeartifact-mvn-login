@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const io = require('@actions/io');
 const fs = require('fs');
+var builder = require('xmlbuilder');
 const codeArtifact = require('@aws-sdk/client-codeartifact');
 
 async function run() {
@@ -9,8 +10,8 @@ async function run() {
   const domain = core.getInput('repo-domain', { required: true });
   const account = core.getInput('account-number', { required: true });
   const duration = core.getInput('duration', { required: false });
-  const repo = core.getInput('repo-name', { required: true });
-  const path = core.getInput('settings-xml-path', { required: true });
+  const repo = core.getInput('repo-name', { required: false });
+  const path = core.getInput('settings-xml-path', { required: false });
   
   const client = new codeArtifact.CodeartifactClient({ region: region });
   const authCommand = new codeArtifact.GetAuthorizationTokenCommand({
@@ -24,10 +25,13 @@ async function run() {
   if (response.authorizationToken === undefined) {
     throw Error(`Auth Failed: ${response.$metadata.httpStatusCode} (${response.$metadata.requestId})`);
   }
-
-  maven(domain, account, region, repo, authToken, path);
+  if(path !== undefined && path != null && path != '' &&
+    repo !== undefined && repo != null && repo != '') {
+  	maven(domain, account, region, repo, authToken, path);
+  }
   
-  core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
+  // core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
+  core.setOutput('token', authToken);
   core.setSecret(authToken);
 }
 
@@ -44,41 +48,33 @@ async function maven(domain, account, region, repo, authToken, path) {
   }
 
   });
-  const file = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd\">
-   <servers>
-      <server>
-         <id>${domain}-${repo}</id>
-         <username>aws</username>
-         <password>${authToken}</password>
-      </server>
-   </servers>
-   <profiles>
-        <profile>
-         <id>${domain}-${repo}</id>
-         <activation>
-            <activeByDefault>true</activeByDefault>
-         </activation>
-         <repositories>
-            <repository>
-               <id>${domain}-${repo}</id>
-               <url>https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repo}/</url>
-            </repository>
-                </repositories>
-      </profile>
-   </profiles>
-   <mirrors>
-      <mirror>
-         <id>${domain}-${repo}</id>
-         <name>${domain}-${repo}</name>
-         <url>https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repo}/</url>
-         <mirrorOf>*</mirrorOf>
-      </mirror>
-   </mirrors>
-</settings>     
-`;
+  var repositories = repo.split(',');
+  var settingsXml = builder.create('settings');
+  var serversXml = settingsXml.ele('servers');
+  
+  for(var i=0; i < repositories.length; i++) {
+      const repository = repositories[i];
+      var eachServer = serversXml.ele('server');
+      eachServer.ele('id', `${domain}-${repository}`);
+      eachServer.ele('username', 'aws')
+      eachServer.ele('password', authToken);
+  }
+  // Instead of defining an ActiveProfile, just define a single profile with multiple repositories that is activeByDefault
+  // Central is built-in so we shouldnt have to add apache repos
+  var profileXml = settingsXml.ele('profiles').ele('profile');
+  profileXml.ele('id', 'all-repos'); 
+  profileXml.ele('activation').ele('activeByDefault', true);
 
-  fs.writeFile(path, file, { flag: 'wx' }, (callback) => {
+  var repositoriesXml = profileXml.ele('repositories')
+  for(var i=0; i < repositories.length; i++) {
+      const repository = repositories[i];
+      var eachRepository = repositoriesXml.ele('repository');
+      eachRepository.ele('id', `${domain}-${repository}`);
+      eachRepository.ele('url', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com/maven/${repository}/`);
+  }
+  settingsXml.end({ pretty: true});
+
+  fs.writeFile(path, settingsXml, { flag: 'wx' }, (callback) => {
     if (callback) core.setFailed(callback);
   });
 }
