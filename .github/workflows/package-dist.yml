@@ -37,7 +37,6 @@ jobs:
 
       - name: Build the dist/ directory
         run: |
-          npm run build
           npm run package
       - run : git diff --ignore-space-at-eol dist/
 
