@@ -1,0 +1,76 @@
+name: 'Package Dist'
+on:
+  workflow_dispatch:
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Set Node.js 16.x
+        uses: actions/setup-node@v3.6.0
+        with:
+          node-version: 16.x
+
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+
+
+      - uses: actions/checkout@v3.3.0
+        with:
+         ref: ${{ env.BRANCH_NAME }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the dist/ directory
+        run: |
+          npm run build
+          npm run package
+      - run : git diff --ignore-space-at-eol dist/
+
+      - name: Commit index.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILE_TO_COMMIT: dist/action/index.js
+          DESTINATION_BRANCH: ${{ env.BRANCH_NAME }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          export MESSAGE="Packaging"
+          export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
+          echo "SHA: $SHA"
+          echo "Branch: $DESTINATION_BRANCH"
+          echo -n "{\"message\":\"Repackaging\", \"encoding\":\"base64\", \"branch\":\"$DESTINATION_BRANCH\", \"sha\":\"$SHA\", \"content\":\"" > body.json
+          base64 -i -w 0 $FILE_TO_COMMIT >> body.json
+          sed -e '$s/$/\"}/' body.json > body2.json
+         
+          gh api --method PUT /repos/:owner/:repo/contents/$FILE_TO_COMMIT --input body2.json
+
+      - name: Commit index.js.map
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILE_TO_COMMIT: dist/action/index.js.map
+          DESTINATION_BRANCH: ${{ env.BRANCH_NAME }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          export MESSAGE="Packaging"
+          export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
+          echo "SHA: $SHA"
+          echo "Branch: $DESTINATION_BRANCH"
+          echo -n "{\"message\":\"Repackaging\", \"encoding\":\"base64\", \"branch\":\"$DESTINATION_BRANCH\", \"sha\":\"$SHA\", \"content\":\"" > body.json
+          base64 -i -w 0 $FILE_TO_COMMIT >> body.json
+          sed -e '$s/$/\"}/' body.json > body2.json
+         
+          gh api --method PUT /repos/:owner/:repo/contents/$FILE_TO_COMMIT --input body2.json
