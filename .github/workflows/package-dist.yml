@@ -57,10 +57,10 @@ jobs:
          
           gh api --method PUT /repos/:owner/:repo/contents/$FILE_TO_COMMIT --input body2.json
 
-      - name: Commit index.js.map
+      - name: Commit index.js cleanup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILE_TO_COMMIT: dist/action/index.js.map
+          FILE_TO_COMMIT: dist/cleanup/index.js.map
           DESTINATION_BRANCH: ${{ env.BRANCH_NAME }}
           GH_REPO: ${{ github.repository }}
         run: |
