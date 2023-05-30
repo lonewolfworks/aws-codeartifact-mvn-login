@@ -2584,7 +2584,7 @@ async function run() {
 
   maven(domain, account, region, repo, authToken, path);
   
-  core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
+  //core.setOutput('registry', `https://${domain}-${account}.d.codeartifact.${region}.amazonaws.com`);
   core.setSecret(authToken);
 }
 
