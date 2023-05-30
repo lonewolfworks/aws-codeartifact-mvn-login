@@ -60,7 +60,7 @@ jobs:
       - name: Commit index.js cleanup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILE_TO_COMMIT: dist/cleanup/index.js.map
+          FILE_TO_COMMIT: dist/cleanup/index.js
           DESTINATION_BRANCH: ${{ env.BRANCH_NAME }}
           GH_REPO: ${{ github.repository }}
         run: |
